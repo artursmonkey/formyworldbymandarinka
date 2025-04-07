@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Это ты, Любовь моя</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif; /* Fallback font */
+      color: #fff; /* Default white color if fonts don't load */
+    }
+    #canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    .text-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .text-love {
+      font-family: 'Manege Demo', sans-serif;
+      font-size: 2em; /* Initial size, will adjust in JS */
+      color: #ffffff;
+      text-shadow: 0 0 10px #314588, 0 0 20px #ffffff, 0 0 30px #ffffff;
+      white-space: nowrap;
+    }
+    .text-monkey {
+      font-family: 'Bimbo Ballpoint', cursive;
+      font-size: 1.33em; /* Roughly 1/1.5 of the initial size */
+      color: #ffffff;
+      text-shadow: 0 0 8px #9b6234, 0 0 16px #ffffff, 0 0 24px #ffffff;
+      margin-top: 2em; /* Roughly 2cm based on a base font size */
+      white-space: nowrap;
+    }
+
+    @font-face {
+      font-family: 'Manege Demo';
+      src: url('ManegeDemo.otf') format('opentype'); /* Replace with the actual path */
+    }
+    @font-face {
+      font-family: 'Bimbo Ballpoint';
+      src: url('BimboBallpoint.ttf') format('truetype'); /* Replace with the actual path */
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="text-container">
+    <div class="text-love" id="loveText">ㅤI love u more than life, my mandarin.ㅤ</div>
+    <div class="text-monkey" id="monkeyText">ㅤБереги себя, мы увидимся.ㅤ</div>
+  </div>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const stars = [];
+    const numStars = 1000;
+    const mouse = { x: -1000, y: -1000 };
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2,
+        originalX: 0,
+        originalY: 0,
+      });
+      stars[i].originalX = stars[i].x;
+      stars[i].originalY = stars[i].y;
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let star of stars) {
+        const dx = star.x - mouse.x;
+        const dy = star.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          const angle = Math.atan2(dy, dx);
+          const force = (100 - dist) / 10;
+          star.x += Math.cos(angle) * force;
+          star.y += Math.sin(angle) * force;
+        } else {
+          star.x += (star.originalX - star.x) * 0.01;
+          star.y += (star.originalY - star.y) * 0.01;
+        }
+
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
+    }
+
+    function drawMonkey(time) {
+      const x = canvas.width / 2;
+      const y = canvas.height - 180;
+
+      // тело
+      ctx.beginPath();
+      ctx.arc(x, y, 40, 0, Math.PI * 2);
+      ctx.fillStyle = "brown";
+      ctx.fill();
+
+      // голова
+      ctx.beginPath();
+      ctx.arc(x, y - 60, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // уши
+      ctx.beginPath();
+      ctx.arc(x - 30, y - 60, 10, 0, Math.PI * 2);
+      ctx.arc(x + 30, y - 60, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // глаза (анимация моргания)
+      const blink = Math.sin(time / 200) > 0 ? 5 : 0.5;
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(x - 10, y - 65, blink, 0, Math.PI * 2);
+      ctx.arc(x + 10, y - 65, blink, 0, Math.PI * 2);
+      ctx.fill();
+
+      // рот (жевание)
+      const chew = Math.abs(Math.sin(time / 150)) * 5;
+      ctx.strokeStyle = "black";
+      ctx.beginPath();
+      ctx.arc(x, y - 50 + chew, 10, 0, Math.PI);
+      ctx.stroke();
+
+      // хвост
+      ctx.strokeStyle = "brown";
+      ctx.beginPath();
+      ctx.arc(x + 50, y + 10, 20, 0, Math.PI * (Math.sin(time / 500) * 0.5 + 1));
+      ctx.stroke();
+
+      // мандарин
+      ctx.fillStyle = "orange";
+      ctx.beginPath();
+      ctx.arc(x, y - 30, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function animate(time) {
+      drawStars();
+      drawMonkey(time);
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    canvas.addEventListener("mousemove", function (e) {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    // Adjust font size to fit
+    const loveTextElement = document.getElementById('loveText');
+    const monkeyTextElement = document.getElementById('monkeyText');
+
+    function adjustFontSize() {
+      let fontSize = 2; // Initial em size
+      loveTextElement.style.fontSize = fontSize + 'em';
+      while (loveTextElement.offsetWidth > window.innerWidth * 0.8) { // Adjust 0.8 as needed for padding
+        fontSize -= 0.1;
+        loveTextElement.style.fontSize = fontSize + 'em';
+      }
+
+      monkeyTextElement.style.fontSize = fontSize / 1.5 + 'em';
+    }
+
+    adjustFontSize();
+    window.addEventListener('resize', adjustFontSize);
+  </script>
+</body>
+</html>
